@@ -1,5 +1,5 @@
 import re
-
+from prefixtree import PrefixTree
 LEFT = 1
 RIGHT = 2
 
@@ -43,7 +43,7 @@ def is_better(link0, link1):
 
     return False
 
-def build_path(wordlist, s):
+def build_path(dix, s):
     left_boundary = 0
     dict_acc_list = []
 
@@ -56,17 +56,18 @@ def build_path(wordlist, s):
     punc_e = None
 
     for i, ch in enumerate(s):
-        dict_acc_list.append({"s":i, "l": 0, "r": len(wordlist)-1})
+        dict_acc_list.append({"s":i, "p":0, "final":False})
 
         # Update dict acceptors
         _dict_acc_list = dict_acc_list
         dict_acc_list = []                        
         for acc in _dict_acc_list:
-            l = seek(wordlist, acc["l"], acc["r"], ch, i-acc["s"], LEFT)
-            if l is not None:
-                is_final = len(wordlist[l]) == i - acc["s"] + 1
-                r = seek(wordlist, l, acc["r"], ch, i-acc["s"], RIGHT)
-                dict_acc_list.append({"s":acc["s"], "l": l, "r": r, "final":is_final})
+            offset = i - acc["s"]
+            child = dix.lookup(acc["p"], offset, ch)
+            if child is not None:
+                child_p, is_final, payload = child
+                dict_acc_list.append({"s":acc["s"], "p": child_p,
+                                      "final":is_final})
 
         # latin words
         if latin_s is None:
@@ -158,13 +159,13 @@ def path_to_tokens(txt, path):
     toks.reverse()
     return toks
 
-def tokenize(wordlist, txt):
-    path = build_path(wordlist, txt)
+def tokenize(dix, txt):
+    path = build_path(dix, txt)
     return path_to_tokens(txt, path)
 
 class Wordcut(object):
     def __init__(self, wordlist):
-        self.wordlist = wordlist
+        self.dix = PrefixTree([(word, None) for word in wordlist])
 
     def tokenize(self, s):
-        return tokenize(self.wordlist, s)
+        return tokenize(self.dix, s)
