@@ -1,35 +1,11 @@
 import re
 from prefixtree import PrefixTree
-LEFT = 1
-RIGHT = 2
 
 UNK   = 1
 DICT  = 2
 INIT  = 3
 LATIN = 4
 PUNC  = 5
-
-def seek(wordlist, l, r, ch, str_offset, pos):
-    ans = None
-    while l <= r:
-        m = (l + r) // 2
-        dict_item = wordlist[m]
-        word_len = len(dict_item)
-        if word_len <= str_offset:
-            l = m + 1
-        else:
-            ch_ = dict_item[str_offset]
-            if ch_ < ch:
-                l = m + 1
-            elif ch_ > ch:
-                r = m - 1
-            else:
-                ans = m
-                if pos == LEFT:
-                    r = m - 1
-                else:
-                    l = m + 1
-    return ans
 
 def is_better(link0, link1):
     if link0 is None:
