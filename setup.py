@@ -7,4 +7,5 @@ setup(name='wordcutpy',
       author='Vee Satayamas',
       author_email='',
       license='MIT',
+      packages=['.'],
       zip_safe=False)
