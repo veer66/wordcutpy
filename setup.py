@@ -6,6 +6,6 @@ setup(name='wordcutpy',
       url='https://github.com/veer66/wordcutpy.git',
       author='Vee Satayamas',
       author_email='',
-      license='MIT',
+      license='LGPLv3',
       packages=['.'],
       zip_safe=False)
