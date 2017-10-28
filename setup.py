@@ -9,5 +9,5 @@ setup(name='wordcutpy',
       license='LGPLv3',
       package_data={'': ['LICENSE', 'LICENSE-DICT', 'README.md', 'bigthai.txt', 'dict.txt']},
       include_package_data=True,
-      packages=['.'],
+      packages=['wordcut'],
       zip_safe=False)
