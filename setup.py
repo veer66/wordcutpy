@@ -1,7 +1,7 @@
 from setuptools import setup
 
 setup(name='wordcutpy',
-      version='0.1.1',
+      version='0.1.2',
       description='Thai word tokenizer written in Python',
       url='https://github.com/veer66/wordcutpy.git',
       author='Vee Satayamas',
