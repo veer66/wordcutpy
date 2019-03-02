@@ -35,3 +35,13 @@ from wordcut import Wordcut
 wordcut = Wordcut.bigthai()
 print(wordcut.tokenize("กากา cat หมา"))
 ````
+
+Test
+----
+
+### Run tests
+
+````shell
+python -m unittest discover -s tests
+````
+
