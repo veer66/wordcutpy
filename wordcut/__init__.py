@@ -161,6 +161,8 @@ def path_to_tokens(txt, path):
     return toks
 
 def tokenize(dix, txt):
+    if txt is None or txt == "":
+        return []
     path = build_path(dix, txt)
     return path_to_tokens(txt, path)
 
