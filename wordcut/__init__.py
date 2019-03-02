@@ -3,6 +3,8 @@ import re
 class PrefixTree(object):
     def __init__(self, members_with_payload):
         self.tab = {}
+        if members_with_payload is None:
+            return 
         sorted_members_with_payload = sorted(members_with_payload,
                                              key=lambda i: i[0])
 

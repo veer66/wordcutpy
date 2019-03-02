@@ -5,7 +5,10 @@ sys.path.append(os.path.abspath('..'))
 from wordcut import PrefixTree
 
 class TestPrefixTree(unittest.TestCase):
-
+    def test_building_prefix_tree_with_none(self):
+        pt = PrefixTree(None)
+        self.assertEqual(pt.lookup(0,0,"A"), None)
+        
     def test_basic(self):
         self.dix = [("B", "P2"),
                     ("A", "P1")]
