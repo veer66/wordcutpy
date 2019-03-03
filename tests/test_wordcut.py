@@ -17,3 +17,7 @@ class TestWordcut(unittest.TestCase):
     def test_simple_one(self):
         self.assertEqual(self.wordcut.tokenize("ฉันกิน"),
                          ["ฉัน", "กิน"])
+
+    def test_single_unk(self):
+        self.assertEqual(self.wordcut.tokenize("ฬฬฬ"),
+                         ["ฬฬฬ"])
