@@ -13,3 +13,7 @@ class TestWordcut(unittest.TestCase):
 
     def test_none_input(self):
         self.assertEqual(self.wordcut.tokenize(None),[])
+
+    def test_simple_one(self):
+        self.assertEqual(self.wordcut.tokenize("ฉันกิน"),
+                         ["ฉัน", "กิน"])
