@@ -25,3 +25,7 @@ class TestWordcut(unittest.TestCase):
     def test_simple_roman_without_space(self):
         self.assertEqual(self.wordcut.tokenize("ฬฬROฬฬ"),
                          ["ฬฬ", "RO", "ฬฬ"])
+
+    def test_simple_space(self):
+        self.assertEqual(self.wordcut.tokenize("ฬฬ  มม"),
+                         ["ฬฬ", "  ", "มม"])

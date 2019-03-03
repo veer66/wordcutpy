@@ -74,14 +74,40 @@ class LatinTransducer:
             return _link
         return None
 
+class PuncTransducer:
+    def __init__(self):
+        self.punc_s = None
+        self.punc_e = None
+
+    def update(self, ch, i, s):
+        if self.punc_s is None:
+            if ch == " ":
+                self.punc_s = i
+        else:
+            if ch == " ":
+                if len(s) == i + 1 or s[i + 1] != " ":
+                    self.punc_e = i + 1
+            else:
+                self.punc_s = None
+                self.punc_e = None
+
+    def create_link(self, path):
+        if self.punc_s is not None and self.punc_e is not None:                
+            p_link = path[self.punc_s]
+            _link = {"p": self.punc_s, 
+                     "w": p_link["w"] + 1, 
+                     "unk": p_link["unk"],
+                     "type": PUNC}
+            return _link
+        return None
+
 def build_path(dix, s):
     left_boundary = 0
     dict_acc_list = []
 
     path = [{"p":None, "w": 0, "unk": 0, "type": INIT}]
 
-    punc_s = None
-    punc_e = None
+    punc_transducer = PuncTransducer()
     latin_transducer = LatinTransducer()
     
     for i, ch in enumerate(s):
@@ -98,18 +124,7 @@ def build_path(dix, s):
                 dict_acc_list.append({"s":acc["s"], "p": child_p,
                                       "final":is_final})
         latin_transducer.update(ch, i, s)
-        # puncuation
-        if punc_s is None:
-            if ch == " ":
-                punc_s = i
-
-        if punc_s is not None:
-            if ch == " ":
-                if len(s) == i + 1 or s[i + 1] != " ":
-                    punc_e = i
-            else:
-                punc_s = None
-                punc_e = None
+        punc_transducer.update(ch, i, s)
 
         # select link
         link = None
@@ -128,16 +143,10 @@ def build_path(dix, s):
         _link = latin_transducer.create_link(path)
         if _link is not None and is_better(link, _link):
             link = _link
-            
-        # link from puncuation
-        if punc_s is not None and punc_e is not None:                
-            p_link = path[punc_s]
-            _link = {"p": punc_s, 
-                     "w": p_link["w"] + 1, 
-                     "unk": p_link["unk"],
-                     "type": PUNC}
-            if is_better(link, _link):
-                link = _link
+
+        _link = punc_transducer.create_link(path)
+        if _link is not None and is_better(link, _link):
+            link = _link
 
         # fallback
         if link is None:
@@ -150,7 +159,7 @@ def build_path(dix, s):
         path.append(link)
 
         if link["type"] != UNK:
-            if link["type"] == LATIN:
+            if link["type"] == LATIN or link["type"] == PUNC:
                 left_boundary = i + 1
             else:
                 left_boundary = i            
