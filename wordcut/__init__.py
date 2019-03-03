@@ -46,18 +46,44 @@ def is_better(link0, link1):
 
     return False
 
+
+class LatinTransducer:
+    def __init__(self):
+        self.latin_s = None
+        self.latin_e = None
+
+    def update(self, ch, i, s):
+        if self.latin_s is None:
+            if re.match("[A-Za-z]", ch):
+                self.latin_s = i
+        else:
+            if re.match("[A-Za-z]", ch):
+                if i + 1 == len(s) or not re.match("[A-Za-z]", s[i + 1]):
+                    self.latin_e = i + 1
+            else:
+                self.latin_s = None
+                self.latin_e = None
+
+    def create_link(self, path):
+        if self.latin_s is not None and self.latin_e is not None:
+            p_link = path[self.latin_s]
+            _link = {"p": self.latin_s, 
+                     "w": p_link["w"] + 1, 
+                     "unk": p_link["unk"],
+                     "type": LATIN}
+            return _link
+        return None
+
 def build_path(dix, s):
     left_boundary = 0
     dict_acc_list = []
 
     path = [{"p":None, "w": 0, "unk": 0, "type": INIT}]
 
-    latin_s = None
-    latin_e = None
-
     punc_s = None
     punc_e = None
-
+    latin_transducer = LatinTransducer()
+    
     for i, ch in enumerate(s):
         dict_acc_list.append({"s":i, "p":0, "final":False})
 
@@ -71,20 +97,7 @@ def build_path(dix, s):
                 child_p, is_final, payload = child
                 dict_acc_list.append({"s":acc["s"], "p": child_p,
                                       "final":is_final})
-
-        # latin words
-        if latin_s is None:
-            if re.match(u"[A-Za-z]", ch):
-                latin_s = i
-
-        if latin_s is not None:            
-            if re.match(u"[A-Za-z]", ch):
-                if i + 1 == len(s) or re.match(u"[A-Za-z]", s[i + 1]):
-                    latin_e = i
-            else:
-                latin_s = None
-                latin_e = None
-
+        latin_transducer.update(ch, i, s)
         # puncuation
         if punc_s is None:
             if ch == " ":
@@ -112,16 +125,10 @@ def build_path(dix, s):
                 if is_better(link, _link):
                     link = _link
 
-        # link from latin word
-        if latin_s is not None and latin_e is not None:
-            p_link = path[latin_s]
-            _link = {"p": latin_s, 
-                     "w": p_link["w"] + 1, 
-                     "unk": p_link["unk"],
-                     "type": LATIN}
-            if is_better(link, _link):
-                link = _link
-
+        _link = latin_transducer.create_link(path)
+        if _link is not None and is_better(link, _link):
+            link = _link
+            
         # link from puncuation
         if punc_s is not None and punc_e is not None:                
             p_link = path[punc_s]
@@ -139,9 +146,15 @@ def build_path(dix, s):
                     "w": p_link["w"] + 1,
                     "unk": p_link["unk"] + 1,
                     "type": UNK}
+            
         path.append(link)
+
         if link["type"] != UNK:
-            left_boundary = i
+            if link["type"] == LATIN:
+                left_boundary = i + 1
+            else:
+                left_boundary = i            
+
     return path
 
 def path_to_tokens(txt, path):
