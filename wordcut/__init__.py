@@ -201,7 +201,7 @@ class Wordcut(object):
         "Initialize from bigthai"
         fileDir =  os.path.dirname(__file__)
         filename = os.path.join(fileDir, 'bigthai.txt')
-        with open(filename) as dict_file:
+        with open(filename, 'r', encoding = 'utf-8-sig') as dict_file:
 
             word_list = list(set([w.rstrip() for w in dict_file.readlines()]))
             word_list.sort()
