@@ -1,10 +1,16 @@
+"""wordcutpy is a word tokenizer written in Python."""
+
 import re
 
-class PrefixTree(object):
+
+class PrefixTree:
+    """PrefixTree is a hash tree for storing and searching word list."""
+
     def __init__(self, members_with_payload):
+        """Prefix tree is constructed from sorted members with payload."""
         self.tab = {}
         if members_with_payload is None:
-            return 
+            return None
         sorted_members_with_payload = sorted(members_with_payload,
                                              key=lambda i: i[0])
 
@@ -23,18 +29,22 @@ class PrefixTree(object):
                     row_no = i
 
     def lookup(self, i, offset, member):
+        """Lookup is done by searching an element of members in the tree."""
         key = (i, offset, member)
         if key not in self.tab:
             return None
         return self.tab[key]
 
-UNK   = 1
-DICT  = 2
-INIT  = 3
+
+UNK = 1
+DICT = 2
+INIT = 3
 LATIN = 4
-PUNC  = 5
+PUNC = 5
+
 
 def is_better(link0, link1):
+    """Links are compared by their properies."""
     if link0 is None:
         return True
 
@@ -48,11 +58,15 @@ def is_better(link0, link1):
 
 
 class LatinTransducer:
+    """Latin transducer detects latin tokens."""
+
     def __init__(self):
+        """Latin transducer is constructed by letting pointers to be None."""
         self.latin_s = None
         self.latin_e = None
 
     def update(self, ch, i, s):
+        """Update by feeding a character, its position, and the string."""
         if self.latin_s is None:
             if re.match("[A-Za-z]", ch):
                 self.latin_s = i
@@ -65,10 +79,11 @@ class LatinTransducer:
                 self.latin_e = None
 
     def create_link(self, path):
+        """Pointers are used for creating a link."""
         if self.latin_s is not None and self.latin_e is not None:
             p_link = path[self.latin_s]
-            _link = {"p": self.latin_s, 
-                     "w": p_link["w"] + 1, 
+            _link = {"p": self.latin_s,
+                     "w": p_link["w"] + 1,
                      "unk": p_link["unk"],
                      "type": LATIN}
             return _link
