@@ -89,12 +89,17 @@ class LatinTransducer:
             return _link
         return None
 
+
 class PuncTransducer:
+    """Punc Transducer detects puncuation tokens."""
+
     def __init__(self):
+        """Punc Transducer is constructed by letting pointers to be None."""
         self.punc_s = None
         self.punc_e = None
 
     def update(self, ch, i, s):
+        """Update by feeding a character, its position, and the string."""
         if self.punc_s is None:
             if ch == " ":
                 self.punc_s = i
@@ -107,37 +112,40 @@ class PuncTransducer:
                 self.punc_e = None
 
     def create_link(self, path):
-        if self.punc_s is not None and self.punc_e is not None:                
+        """Pointers are used for creating a link."""
+        if self.punc_s is not None and self.punc_e is not None:
             p_link = path[self.punc_s]
-            _link = {"p": self.punc_s, 
-                     "w": p_link["w"] + 1, 
+            _link = {"p": self.punc_s,
+                     "w": p_link["w"] + 1,
                      "unk": p_link["unk"],
                      "type": PUNC}
             return _link
         return None
 
+
 def build_path(dix, s):
+    """Build path constructs word tokenization path."""
     left_boundary = 0
     dict_acc_list = []
 
-    path = [{"p":None, "w": 0, "unk": 0, "type": INIT}]
+    path = [{"p": None, "w": 0, "unk": 0, "type": INIT}]
 
     punc_transducer = PuncTransducer()
     latin_transducer = LatinTransducer()
-    
+
     for i, ch in enumerate(s):
-        dict_acc_list.append({"s":i, "p":0, "final":False})
+        dict_acc_list.append({"s": i, "p": 0, "final": False})
 
         # Update dict acceptors
         _dict_acc_list = dict_acc_list
-        dict_acc_list = []                        
+        dict_acc_list = []
         for acc in _dict_acc_list:
             offset = i - acc["s"]
             child = dix.lookup(acc["p"], offset, ch)
             if child is not None:
                 child_p, is_final, payload = child
-                dict_acc_list.append({"s":acc["s"], "p": child_p,
-                                      "final":is_final})
+                dict_acc_list.append({"s": acc["s"], "p": child_p,
+                                      "final": is_final})
         latin_transducer.update(ch, i, s)
         punc_transducer.update(ch, i, s)
 
@@ -148,8 +156,8 @@ def build_path(dix, s):
         for acc in dict_acc_list:
             if acc["final"]:
                 p_link = path[acc["s"]]
-                _link = {"p": acc["s"], 
-                         "w": p_link["w"] + 1, 
+                _link = {"p": acc["s"],
+                         "w": p_link["w"] + 1,
                          "unk": p_link["unk"],
                          "type": DICT}
                 if is_better(link, _link):
@@ -166,22 +174,24 @@ def build_path(dix, s):
         # fallback
         if link is None:
             p_link = path[left_boundary]
-            link = {"p": left_boundary, 
+            link = {"p": left_boundary,
                     "w": p_link["w"] + 1,
                     "unk": p_link["unk"] + 1,
                     "type": UNK}
-            
+
         path.append(link)
 
         if link["type"] != UNK:
             if link["type"] == LATIN or link["type"] == PUNC:
                 left_boundary = i + 1
             else:
-                left_boundary = i            
+                left_boundary = i
 
     return path
 
+
 def path_to_tokens(txt, path):
+    """Path to Token transforms a path to a list of tokens."""
     if len(path) < 2:
         return None
 
@@ -199,28 +209,34 @@ def path_to_tokens(txt, path):
     toks.reverse()
     return toks
 
+
 def tokenize(dix, txt):
+    """Tokenize splits a string to a list of tokens."""
     if txt is None or txt == "":
         return []
     path = build_path(dix, txt)
     return path_to_tokens(txt, path)
 
-class Wordcut(object):
-    def __init__(self, wordlist):
-        self.dix = PrefixTree([(word, None) for word in wordlist])
 
+class Wordcut:
+    """Wordcut wraps functions and data related tokenizaion."""
+
+    def __init__(self, wordlist):
+        """Wordcut is constructed by a sorted list of words."""
+        self.dix = PrefixTree([(word, None) for word in wordlist])
 
     @classmethod
     def bigthai(cls):
+        """Bigthai constructs Wordcut based on a big Thai word list."""
         import os
         "Initialize from bigthai"
-        fileDir =  os.path.dirname(__file__)
+        fileDir = os.path.dirname(__file__)
         filename = os.path.join(fileDir, 'bigthai.txt')
-        with open(filename, 'r', encoding = 'utf-8-sig') as dict_file:
-
+        with open(filename, 'r', encoding='utf-8-sig') as dict_file:
             word_list = list(set([w.rstrip() for w in dict_file.readlines()]))
             word_list.sort()
             return cls(word_list)
 
     def tokenize(self, s):
+        """Tokenize splits a string to a list of tokens."""
         return tokenize(self.dix, s)
